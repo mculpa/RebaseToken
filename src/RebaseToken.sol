@@ -31,14 +31,32 @@ contract RebaseToken is ERC20 {
         emit InterestRateSet(_newInterestRate);
     }
 
+    function principleBalanceOf(address _user) external view returns (uint256) {
+        return super.balanceOf(_user);
+    }
+
     function mint(address _to, uint256 _amount) external {
         _mintAccruedInterest(_to);
         s_userInterestRate[_to] = s_interestRate;
         _mint(_to, _amount);
     }
 
+    function burn(address _from, uint256 _amount) external {
+        if (_amount == type(uint256).max) {
+            _amount = balanceOf(_from);
+        }
+        _mintAccruedInterest(_from);
+        _burn(_from, _amount);
+    }
+
     function _mintAccruedInterest(address _to) internal {
+        uint256 previousPrincipleBalance = super.balanceOf(_to);
+        uint256 currentBalance = balanceOf(_to);
+        uint256 balanceIncrease = currentBalance - previousPrincipleBalance;
+
         s_lastUpdatedTimeStamp[_to] = block.timestamp;
+
+        _mint(_to, balanceIncrease);
     }
 
     function getUserInterestRate(address _user) external view returns (uint256) {
@@ -49,6 +67,32 @@ contract RebaseToken is ERC20 {
         return super.balanceOf(_user) * calculateUserAccumulatedInterestSinceLastUpdate(_user) / PRECISION_FACTOR;
     }
 
+    function transfer(address _recipient, uint256 _amount) public override returns (bool) {
+        _mintAccruedInterest(msg.sender);
+        _mintAccruedInterest(_recipient);
+        if (_amount == type(uint256).max) {
+            _amount = balanceOf(msg.sender);
+        }
+        if (balanceOf(msg.sender) == 0) {
+            s_userInterestRate[_recipient] = s_userInterestRate[msg.sender];
+        }
+
+        return super.transfer(_recipient, _amount);
+    }
+
+    function transferFrom(address _sender, address _recipient, uint256 _amount) public override returns (bool) {
+        _mintAccruedInterest(_sender);
+        _mintAccruedInterest(_recipient);
+        if (_amount == type(uint256).max) {
+            _amount = balanceOf(_sender);
+        }
+        if (balanceOf(_recipient) == 0) {
+            s_userInterestRate[_recipient] = s_userInterestRate[_sender];
+        }
+
+        return super.transferFrom(_sender, _recipient, _amount);
+    }
+
     function calculateUserAccumulatedInterestSinceLastUpdate(address _user)
         internal
         view
@@ -56,5 +100,9 @@ contract RebaseToken is ERC20 {
     {
         uint256 timeElapsed = block.timestamp - s_lastUpdatedTimeStamp[_user];
         linearInterest = (PRECISION_FACTOR + (s_userInterestRate[_user] * timeElapsed)) / PRECISION_FACTOR;
+    }
+
+    function getInterestRate() external view returns (uint256) {
+        return s_interestRate;
     }
 }
