@@ -5,13 +5,13 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-/*
-* @title RebaseToken
-* @Author Makar Dolorosa
-* @notice This is a cross-chain rebase token that incentives users to deposit into a vault and gain interest in rewards   
-* @notice The interest rate in smart contract can only decrease 
-* @notice Each will user will have their own interest rate that is a global at the time of deposit 
-*/
+// @Author Makar Dolorosa
+/** 
+ * @title RebaseToken
+ * @notice This is a cross-chain rebase token that incentives users to deposit into a vault and gain interest in rewards
+ * @notice The interest rate in smart contract can only decrease
+ * @notice Each will user will have their own interest rate that is a global at the time of deposit
+ */
 
 contract RebaseToken is ERC20, Ownable, AccessControl {
     error RebaseToken__InterestRateCanOnlyDecrease(uint256 oldInterestRate, uint256 newInterestRate);
