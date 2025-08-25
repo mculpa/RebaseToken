@@ -59,8 +59,8 @@ contract CrossChainTest is Test {
         // sourceDeployer = new SourceDeployer();
 
         // 1. Setup the Sepolia and arb forks
-        sepoliaFork = vm.createSelectFork("eth");
-        arbSepoliaFork = vm.createFork("arb");
+        sepoliaFork = vm.createSelectFork("sepolia");
+        arbSepoliaFork = vm.createFork("arb-sepolia");
 
         //NOTE: what does this do?
         ccipLocalSimulatorFork = new CCIPLocalSimulatorFork();
